@@ -1,0 +1,22 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV['DB_HOST'] %>
+  username: <%= ENV["DB_USER"] %>
+  password: <%= ENV["DB_PASSWORD"] %>
+  port: 5432
+
+development:
+  <<: *default
+  database: playvalve_api_development
+
+test:
+  <<: *default
+  database: playvalve_api_test
+
+production:
+  <<: *default
+  database: playvalve_api_production
+  username: playvalve_api
+  password: <%= ENV["PLAYVALVE_API_DATABASE_PASSWORD"] %>
