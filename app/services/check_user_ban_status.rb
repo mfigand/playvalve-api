@@ -2,31 +2,46 @@ class CheckUserBanStatus
   def initialize(attributes = {})
     @idfa = attributes[:idfa]
     @rooted_device = attributes[:rooted_device]
-    @ip_country = attributes[:ip_country]
+    @code_country = attributes[:code_country]
+    @ip = attributes[:ip]
   end
 
   def call
-    return 'banned' if rooted_device || user.banned? || banned_country? || external_vpn_tor?
+    return handle_banned_user if user.banned?
 
-    'not_banned'
+    handle_security_checks
   end
 
   private
 
-  attr_reader :idfa, :rooted_device, :ip_country
+  attr_reader :idfa, :rooted_device, :code_country, :ip
 
   def user
-    @user ||= User.find_or_create_by(idfa:)
+    @user ||= User.find_or_initialize_by(idfa:)
+  end
+
+  def handle_banned_user
+    user.touch
+    'banned'
+  end
+
+  def handle_security_checks
+    result = security_checks_result
+    user.public_send("#{result}!")
+    result
+  end
+
+  def security_checks_result
+    return 'banned' if rooted_device || banned_country? || external_vpn_tor?
+
+    'not_banned'
   end
 
   def banned_country?
-    # check if ip_country is in the Redis country whitelist and cache the result for 24 hours
-    false
+    !RedisService.whitelisted?(key: "country_whitelist", value: code_country)
   end
 
   def external_vpn_tor?
-    # Implement the VPNAPI check and Redis caching for 24 hrs
-    # Use a service to encapsulate the VPNAPI interaction and error handling.
-    false
+    TorVpnCheck.new(ip:).call
   end
 end

@@ -10,6 +10,12 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       # DB: playvalve_api_development
 
+  redis:
+    image: redis:latest
+    command: redis-server
+    ports:
+      - "6379:6379"
+
   api:
     build: .
     command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
@@ -19,6 +25,7 @@ services:
       - "3000:3000"
     depends_on:
       - db
+      - redis
     environment:
       DB_HOST: ${DB_HOST}
       DB_USER: ${DB_USER}
@@ -26,3 +33,4 @@ services:
       RAILS_ENV: ${RAILS_ENV}
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
       # DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db/playvalve_api_development
+      REDIS_URL: ${REDIS_URL}

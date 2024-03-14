@@ -1,13 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe "V1::Users", type: :request do
-  subject { post path, params: request_body.to_json, headers: }
+  subject { post "/v1/user/check_status", params: request_body.to_json, headers: }
 
-  let(:path) { v1_user_check_status_path }
   let(:headers) do
     {
       'CONTENT_TYPE' => 'application/json',
-      'CF-IPCountry' => 'ES'
+      'CF-IPCountry' => code_country
     }
   end
   let(:request_body) do
@@ -16,15 +15,22 @@ RSpec.describe "V1::Users", type: :request do
       "rooted_device" => rooted_device
     }
   end
+  let(:code_country) { 'ES' }
   let(:user) { create(:user, ban_status:) }
   let(:ban_status) { 1 }
   let(:rooted_device) { false }
 
   before do
+    allow(RedisService).to receive(:whitelisted?)
+      .with(key: "country_whitelist", value: code_country)
+      .and_return(true)
+
+    allow_any_instance_of(TorVpnCheck).to receive(:call).and_return(false)
+
     subject
   end
 
-  describe "POST /check_status" do
+  describe "POST /v1/user/check_status" do
     let(:integrity_log) { create(:integrity_log, idfa: user.idfa) }
 
     context "success" do
