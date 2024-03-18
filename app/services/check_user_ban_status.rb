@@ -27,7 +27,9 @@ class CheckUserBanStatus
 
   def handle_security_checks
     result = security_checks_result
+    handle_log_record(result)
     user.public_send("#{result}!")
+
     result
   end
 
@@ -69,6 +71,22 @@ class CheckUserBanStatus
       key: tor_vpn_cached_key,
       value: ban_result,
       expires_in: 24.hours
+    )
+  end
+
+  def handle_log_record(ban_status)
+    log_record(ban_status) if user.new_record? || user.ban_status != ban_status
+  end
+
+  def log_record(ban_status)
+    IntegrityLog.create(
+      idfa:,
+      ban_status:,
+      ip:,
+      rooted_device:,
+      country: code_country,
+      proxy: tor_vpn_response[:body].dig('security', 'proxy'),
+      vpn: tor_vpn_response[:body].dig('security', 'vpn')
     )
   end
 end

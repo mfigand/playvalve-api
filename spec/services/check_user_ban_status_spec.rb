@@ -23,7 +23,7 @@ RSpec.describe CheckUserBanStatus, type: :service do
       .and_return(nil)
 
     allow_any_instance_of(TorVpnCheck).to receive(:call).and_return(
-      { body: { "security" => { "tor" => false, "vpn" => false } } }
+      { body: { "security" => { "tor" => false, "vpn" => false, "proxy" => false } } }
     )
   end
 
@@ -49,7 +49,7 @@ RSpec.describe CheckUserBanStatus, type: :service do
 
       context 'when use a Tor/VPN' do
         let(:vpn_api_response) do
-          { body: { "security" => { "tor" => true, "vpn" => true } } }
+          { body: { "security" => { "tor" => true, "vpn" => true, "proxy" => false } } }
         end
 
         it 'returns "banned"' do
@@ -59,11 +59,39 @@ RSpec.describe CheckUserBanStatus, type: :service do
 
       context 'when dont use a Tor/VPN' do
         let(:vpn_api_response) do
-          { body: { "security" => { "tor" => false, "vpn" => false } } }
+          { body: { "security" => { "tor" => false, "vpn" => false, "proxy" => false } } }
         end
 
         it 'returns "not_banned"' do
           expect(subject).to eq('not_banned')
+        end
+      end
+    end
+
+    describe '#log_record' do
+      context "when is a new user" do
+        let(:idfa) { "new-idfa" }
+
+        it 'creates a User record' do
+          expect { subject }.to change { User.count }.by(1)
+        end
+
+        it 'creates a IntegrityLog record' do
+          expect { subject }.to change { IntegrityLog.count }.by(1)
+        end
+      end
+
+      context "when ban_status change for an existing user" do
+        let(:rooted_device) { true }
+
+        it 'creates a IntegrityLog record' do
+          expect { subject }.to change { IntegrityLog.count }.by(1)
+        end
+      end
+
+      context "when ban_status not change for an existing user" do
+        it 'wont create a IntegrityLog record' do
+          expect { subject }.to change { IntegrityLog.count }.by(0)
         end
       end
     end
