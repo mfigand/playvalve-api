@@ -25,7 +25,9 @@ RSpec.describe "V1::Users", type: :request do
       .with(key: "country_whitelist", value: code_country)
       .and_return(true)
 
-    allow_any_instance_of(TorVpnCheck).to receive(:call).and_return(false)
+    allow_any_instance_of(TorVpnCheck).to receive(:call).and_return(
+      { body: { "security" => { "tor" => false, "vpn" => false } } }
+    )
 
     subject
   end

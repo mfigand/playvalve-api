@@ -42,6 +42,33 @@ class CheckUserBanStatus
   end
 
   def external_vpn_tor?
-    TorVpnCheck.new(ip:).call
+    return cached_response unless cached_response.nil?
+
+    ban_result = tor_vpn_response[:body].dig('security', 'tor') ||
+                 tor_vpn_response[:body].dig('security', 'vpn') ||
+                 false
+
+    cache_ban_result(ban_result)
+    ban_result
+  end
+
+  def tor_vpn_response
+    @tor_vpn_response ||= TorVpnCheck.new(ip:).call
+  end
+
+  def tor_vpn_cached_key
+    @tor_vpn_cached_key ||= "tor_vpn_check_for_#{ip}"
+  end
+
+  def cached_response
+    @cached_response ||= RedisService.get_cached_result(key: tor_vpn_cached_key)
+  end
+
+  def cache_ban_result(ban_result)
+    RedisService.cache_result(
+      key: tor_vpn_cached_key,
+      value: ban_result,
+      expires_in: 24.hours
+    )
   end
 end

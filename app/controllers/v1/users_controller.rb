@@ -6,6 +6,8 @@ module V1
       result = CheckUserBanStatus.new(check_status_params).call
 
       render json: { ban_status: result }
+    rescue StandardError => e
+      render json: { error: e.message }, status: :bad_request
     end
 
     private

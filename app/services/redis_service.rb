@@ -15,13 +15,13 @@ class RedisService
     end
   end
 
-  def self.cache_result(key, value, expires_in: 24.hours)
+  def self.cache_result(key:, value:, expires_in: 24.hours)
     redis do |client|
       client.set(key, value.to_json, ex: expires_in)
     end
   end
 
-  def self.get_cached_result(key)
+  def self.get_cached_result(key:)
     redis do |client|
       value = client.get(key)
       value ? JSON.parse(value) : nil
