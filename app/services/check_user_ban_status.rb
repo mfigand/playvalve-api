@@ -79,7 +79,7 @@ class CheckUserBanStatus
   end
 
   def log_record(ban_status)
-    IntegrityLog.create(
+    IntegrityLogger.new(
       idfa:,
       ban_status:,
       ip:,
@@ -87,6 +87,6 @@ class CheckUserBanStatus
       country: code_country,
       proxy: tor_vpn_response[:body].dig('security', 'proxy'),
       vpn: tor_vpn_response[:body].dig('security', 'vpn')
-    )
+    ).log
   end
 end
