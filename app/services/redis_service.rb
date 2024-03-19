@@ -15,6 +15,12 @@ class RedisService
     end
   end
 
+  def self.remove_from_whitelist(key:, value:)
+    redis do |client|
+      client.srem(key, value)
+    end
+  end
+
   def self.cache_result(key:, value:, expires_in: 24.hours)
     redis do |client|
       client.set(key, value.to_json, ex: expires_in)
