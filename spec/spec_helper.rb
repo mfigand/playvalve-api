@@ -1,8 +1,9 @@
 require 'simplecov'
 
 SimpleCov.start do
-  add_filter 'config'
-  add_filter 'spec'
+  add_filter 'app/services/redis_service.rb'
+  add_filter 'app/services/integrity_logger'
+  add_filter 'spec/rails_helper.rb'
   add_filter 'vendor'
 end
 

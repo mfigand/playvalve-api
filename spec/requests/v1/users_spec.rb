@@ -109,7 +109,19 @@ RSpec.describe "V1::Users", type: :request do
         end
       end
 
-      context "when don't pass expected headers" do
+      context "when don't pass CF-IPCountry header" do
+        let(:headers) do
+          {
+            'CONTENT_TYPE' => 'text/html'
+          }
+        end
+
+        it 'should return status 400' do
+          expect(response.status).to eq(400)
+        end
+      end
+
+      context "when pass an invalid CONTENT_TYPE" do
         let(:headers) do
           {
             'CONTENT_TYPE' => 'text/html',

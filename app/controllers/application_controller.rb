@@ -9,12 +9,12 @@ class ApplicationController < ActionController::API
   def validate_headers!
     return if request.headers['CF-IPCountry']
 
-    render json: { error: 'Missing required header: CF-IPCountry' }, status: :bad_request
+    raise ActionController::BadRequest, 'Missing required header: CF-IPCountry'
   end
 
   def validate_content_type!
     return if request.content_type == 'application/json'
 
-    render json: { error: 'Invalid content type' }, status: :bad_request
+    raise ActionController::BadRequest, 'Invalid content type'
   end
 end
